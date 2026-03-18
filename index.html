@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Assistant - Manage Smartly</title>
+    <meta name="description" content="Professional property management system">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CryptoJS for encryption -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        accent: '#ec4899',
+                        dark: '#0f172a',
+                        surface: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #6366f1;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .floating-shapes {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .shape {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape-1 {
+            width: 400px;
+            height: 400px;
+            background: #6366f1;
+            top: -10%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 300px;
+            height: 300px;
+            background: #8b5cf6;
+            bottom: -10%;
+            right: -10%;
+            animation-delay: -5s;
+        }
+
+        .shape-3 {
+            width: 250px;
+            height: 250px;
+            background: #ec4899;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        .slide-up { animation: slideUp 0.5s ease-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-active {
+            border-bottom: 2px solid #6366f1;
+            color: #6366f1;
+        }
+
+        .error-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+
+    <!-- Background Effects -->
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
+        
+        <!-- Auth Container -->
+        <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
+            
+            <!-- Left Side: Branding -->
+            <div class="hidden lg:block space-y-8 slide-up">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-2xl shadow-primary/50">
+                        <i class="fas fa-home text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold">House Assistant</h1>
+                        <p class="text-xl text-gray-400">Manage Smartly</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="glass-card rounded-2xl p-6 flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-chart-line text-emerald-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-lg mb-1">Smart Analytics</h3>
+                            <p class="text-gray-400 text-sm">Track revenue, occupancy rates, and financial performance with real-time dashboards.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6 flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-users text-blue-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-lg mb-1">Tenant Management</h3>
+                            <p class="text-gray-400 text-sm">Complete tenant lifecycle management from application to move-out.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6 flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-tools text-orange-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-lg mb-1">Maintenance Tracking</h3>
+                            <p class="text-gray-400 text-sm">Streamlined work orders and maintenance request management.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Auth Forms -->
+            <div class="glass-panel rounded-3xl p-8 md:p-12 shadow-2xl fade-in">
+                
+                <!-- Mobile Logo -->
+                <div class="lg:hidden flex items-center gap-3 mb-8 justify-center">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                        <i class="fas fa-home text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">House Assistant</h1>
+                        <p class="text-sm text-gray-400">Manage Smartly</p>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex gap-8 mb-8 border-b border-white/10">
+                    <button id="tab-login" onclick="switchAuthTab('login')" class="pb-4 text-lg font-medium tab-active transition-colors">
+                        Sign In
+                    </button>
+                    <button id="tab-register" onclick="switchAuthTab('register')" class="pb-4 text-lg font-medium text-gray-400 hover:text-white transition-colors">
+                        Create Account
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-6" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <input type="email" id="login-email" required 
+                                   class="input-field w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder-gray-500"
+                                   placeholder="you@example.com">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <input type="password" id="login-password" required 
+                                   class="input-field w-full pl-12 pr-12 py-3 rounded-xl text-white placeholder-gray-500"
+                                   placeholder="••••••••">
+                            <button type="button" onclick="togglePassword('login-password')" 
+                                    class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-sm">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 rounded border-gray-600 text-primary focus:ring-primary bg-white/5">
+                            <span class="text-gray-400">Remember me</span>
+                        </label>
+                        <a href="#" onclick="showForgotPassword()" class="text-primary hover:text-secondary transition-colors">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" id="login-btn" class="btn-primary w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2">
+                        <span>Sign In</span>
+                        <div id="login-spinner" class="loading-spinner hidden"></div>
+                    </button>
+
+                    <div id="login-error" class="hidden p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center"></div>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="hidden space-y-6" onsubmit="handleRegister(event)">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">First Name</label>
+                            <input type="text" id="reg-firstname" required 
+                                   class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-500"
+                                   placeholder="John">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Last Name</label>
+                            <input type="text" id="reg-lastname" required 
+                                   class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-500"
+                                   placeholder="Doe">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <input type="email" id="reg-email" required 
+                                   class="input-field w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder-gray-500"
+                                   placeholder="you@example.com">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Property Name</label>
+                        <div class="relative">
+                            <i class="fas fa-building absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <input type="text" id="reg-property" required 
+                                   class="input-field w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder-gray-500"
+                                   placeholder="Sunset Apartments">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <input type="password" id="reg-password" required minlength="8"
+                                   class="input-field w-full pl-12 pr-12 py-3 rounded-xl text-white placeholder-gray-500"
+                                   placeholder="Minimum 8 characters">
+                            <button type="button" onclick="togglePassword('reg-password')" 
+                                    class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">Must be at least 8 characters with numbers and symbols</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Confirm Password</label>
+                        <input type="password" id="reg-confirm" required 
+                               class="input-field w-full px-4 py-3 rounded-xl text-white placeholder-gray-500"
+                               placeholder="Confirm password">
+                    </div>
+
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="reg-terms" required class="mt-1 w-4 h-4 rounded border-gray-600 text-primary focus:ring-primary bg-white/5">
+                        <span class="text-sm text-gray-400">I agree to the <a href="#" class="text-primary hover:underline">Terms of Service</a> and <a href="#" class="text-primary hover:underline">Privacy Policy</a></span>
+                    </label>
+
+                    <button type="submit" id="reg-btn" class="btn-primary w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2">
+                        <span>Create Account</span>
+                        <div id="reg-spinner" class="loading-spinner hidden"></div>
+                    </button>
+
+                    <div id="reg-error" class="hidden p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center"></div>
+                </form>
+
+                <!-- Social Login -->
+                <div class="mt-8 pt-8 border-t border-white/10">
+                    <p class="text-center text-sm text-gray-400 mb-4">Or continue with</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="socialLogin('google')" class="glass-card py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
+                            <i class="fab fa-google text-red-400"></i>
+                            <span class="text-sm">Google</span>
+                        </button>
+                        <button onclick="socialLogin('github')" class="glass-card py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
+                            <i class="fab fa-github text-white"></i>
+                            <span class="text-sm">GitHub</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        if (localStorage.getItem('ha_session')) {
+            window.location.href = 'app.html';
+        }
+
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const loginTab = document.getElementById('tab-login');
+            const registerTab = document.getElementById('tab-register');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                loginTab.classList.add('tab-active');
+                loginTab.classList.remove('text-gray-400');
+                registerTab.classList.remove('tab-active');
+                registerTab.classList.add('text-gray-400');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerTab.classList.add('tab-active');
+                registerTab.classList.remove('text-gray-400');
+                loginTab.classList.remove('tab-active');
+                loginTab.classList.add('text-gray-400');
+            }
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+        }
+
+        function showError(elementId, message) {
+            const errorDiv = document.getElementById(elementId);
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function setLoading(btnId, spinnerId, isLoading) {
+            const btn = document.getElementById(btnId);
+            const spinner = document.getElementById(spinnerId);
+            const text = btn.querySelector('span');
+            
+            if (isLoading) {
+                spinner.classList.remove('hidden');
+                text.textContent = 'Please wait...';
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+            } else {
+                spinner.classList.add('hidden');
+                text.textContent = btnId === 'login-btn' ? 'Sign In' : 'Create Account';
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        // Simple encryption for sensitive data
+        function encrypt(data, key) {
+            return CryptoJS.AES.encrypt(JSON.stringify(data), key).toString();
+        }
+
+        function decrypt(encrypted, key) {
+            try {
+                const decrypted = CryptoJS.AES.decrypt(encrypted, key);
+                return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            setLoading('login-btn', 'login-spinner', true);
+
+            const email = document.getElementById('login-email').value.toLowerCase();
+            const password = document.getElementById('login-password').value;
+
+            setTimeout(() => {
+                // Get users from localStorage
+                const users = JSON.parse(localStorage.getItem('ha_users') || '[]');
+                const user = users.find(u => u.email === email);
+
+                if (!user) {
+                    setLoading('login-btn', 'login-spinner', false);
+                    showError('login-error', 'Account not found. Please check your email or register.');
+                    document.getElementById('login-form').classList.add('error-shake');
+                    setTimeout(() => document.getElementById('login-form').classList.remove('error-shake'), 500);
+                    return;
+                }
+
+                // Verify password (in production, use proper hashing)
+                if (user.password !== btoa(password)) {
+                    setLoading('login-btn', 'login-spinner', false);
+                    showError('login-error', 'Invalid password. Please try again.');
+                    return;
+                }
+
+                // Create session
+                const session = {
+                    userId: user.id,
+                    email: user.email,
+                    name: user.firstName + ' ' + user.lastName,
+                    property: user.property,
+                    loginTime: new Date().toISOString()
+                };
+
+                localStorage.setItem('ha_session', JSON.stringify(session));
+                
+                // Redirect to app
+                window.location.href = 'app.html';
+            }, 1000);
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            setLoading('reg-btn', 'reg-spinner', true);
+
+            const firstName = document.getElementById('reg-firstname').value;
+            const lastName = document.getElementById('reg-lastname').value;
+            const email = document.getElementById('reg-email').value.toLowerCase();
+            const property = document.getElementById('reg-property').value;
+            const password = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-confirm').value;
+
+            // Validation
+            if (password !== confirm) {
+                setLoading('reg-btn', 'reg-spinner', false);
+                showError('reg-error', 'Passwords do not match.');
+                return;
+            }
+
+            if (password.length < 8) {
+                setLoading('reg-btn', 'reg-spinner', false);
+                showError('reg-error', 'Password must be at least 8 characters.');
+                return;
+            }
+
+            setTimeout(() => {
+                // Check if email exists
+                const users = JSON.parse(localStorage.getItem('ha_users') || '[]');
+                if (users.find(u => u.email === email)) {
+                    setLoading('reg-btn', 'reg-spinner', false);
+                    showError('reg-error', 'An account with this email already exists.');
+                    return;
+                }
+
+                // Create new user
+                const newUser = {
+                    id: Date.now().toString(),
+                    firstName,
+                    lastName,
+                    email,
+                    property,
+                    password: btoa(password), // Simple encoding (use bcrypt in production)
+                    createdAt: new Date().toISOString(),
+                    settings: {
+                        currency: 'USD',
+                        timezone: 'UTC',
+                        notifications: true
+                    }
+                };
+
+                users.push(newUser);
+                localStorage.setItem('ha_users', JSON.stringify(users));
+
+                // Initialize user's data structure
+                const userData = {
+                    tenants: [],
+                    payments: [],
+                    maintenance: [],
+                    utilities: {
+                        electricity: [],
+                        water: [],
+                        gas: [],
+                        internet: []
+                    },
+                    documents: [],
+                    stats: {
+                        totalRevenue: 0,
+                        totalExpenses: 0,
+                        occupancyRate: 0
+                    }
+                };
+
+                localStorage.setItem(`ha_data_${newUser.id}`, JSON.stringify(userData));
+
+                // Auto login
+                const session = {
+                    userId: newUser.id,
+                    email: newUser.email,
+                    name: newUser.firstName + ' ' + newUser.lastName,
+                    property: newUser.property,
+                    loginTime: new Date().toISOString()
+                };
+
+                localStorage.setItem('ha_session', JSON.stringify(session));
+                window.location.href = 'app.html';
+            }, 1500);
+        }
+
+        function socialLogin(provider) {
+            alert(`${provider} login would be implemented with OAuth in production`);
+        }
+
+        function showForgotPassword() {
+            alert('Password reset functionality would send an email in production');
+        }
+    </script>
+</body>
+</html>
